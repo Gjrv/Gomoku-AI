@@ -4,326 +4,146 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Gomoky
+namespace Gomoku_v1._0
 {
-    delegate bool BoolPoint(Point s1, Point s2);
     class Analyzer
     {
-        static private List <Point> _possibleMoves = new List<Point>();
-        static public Dictionary<string, int> _template = new Dictionary<string, int>()
+        public Point _best_Move;
+        static private List<Point> _possibleMoves = new List<Point>();
+        private Board _board;
+        static private Dictionary<string, int> _template = new Dictionary<string, int>()
         {
-            { " xo",     1 },
-            { " ox ",     1 },
-            { " x ",      2 },
-            { " x xo",   3 },
-            { "ox x ",   3 },
-            { " xx xo",  4 },
-            { " x xxo",  4 },
-            { " xxo",    5 },
-            { "oxx ",    5 },
-            { " x x ",    6 },
-            { " x xx ",   7 },
-            { " xx x ",   7 },
-            { " xx xxo", 8 },
-            { "oxx xx ", 8 },
-            { " xxxo",   9 },
-            { "oxxx ",   9 },
-            { " xx ",    10 },
-            { " xx xx ", 11 },
-            { " xxxxo", 12 },
-            { "oxxxx ", 12 },
-            { " xxx ", 13 },
-            { " xxxx ", 14 },
+            { "xo",      1 },
+            { "ox",      1 },
+            { "x",      2 },
+            { "x xo",    3 },
+            { "ox x",    3 },
+            { "xx xo",   4 },
+            { "x xxo",   4 },
+            { "xxo",     5 },
+            { "oxx",     5 },
+            { "x x",    6 },
+            { "x x",     6 },
+            { "x x",     6 },
+            { "x xx",   7 },
+            { "xx x",   7 },
+            { "xx xxo",  8 },
+            { "oxx xx",  8 },
+            { "xxxo",    9 },
+            { "oxxx",    9 },
+            { "xx",    10 },
+            { "xx xx", 11 },
+            { "xxxxo",  12 },
+            { "oxxxx",  12 },
+            { "xxx",   13 },
+            { "xxxx",  14 },
             { "xxxxx", 15 },
         };
 
-        //Хранит ссылку на объкт стола
-        private Table _table;
-
-        //Ходы с оцекой для ИИ и Игрока
-        private Dictionary<Point, int> _movesRatingAI;
-        private Dictionary<Point, int> _movesRatingUser;
-
-        //Структура перечисления для определения хода
-        private enum Player { AI, User }
-        //Анализирует оценку для всевозможных ходов
-        private void MovesAnalyzer(/*Dictionary<Point, int>  MovesRating*/)
+        private List<Point> get_Possible(Point p)
         {
-            string GetHorizontalTemplate(Point move)
+            if(_board._game_board. == 'x')
             {
-
-                Point tmp = new Point(move.X + 1, move.Y);
-                string answere = "x";
-                int space = 0;
-                while (_table.table[tmp] != 'o')
-                {
-                    if (!_table.table.ContainsKey(tmp))
-                    {
-                        space++;
-                        if (space == 2)
-                            break;
-                        answere += " ";
-                        tmp.X++;
-                        continue;
-                    }
-
-                    answere += _table.table[tmp];
-                    tmp.X++;
-                }
-                if (space != 2)
-                    answere += "o";
-                space = 0;
-                tmp.X = move.X - 1;
-                while (_table.table[tmp] != 'o')
-                {
-                    if (!_table.table.ContainsKey(tmp))
-                    {
-                        space++;
-                        if (space == 2)
-                            break;
-                        answere += " ";
-                        tmp.X--;
-                        continue;
-                    }
-
-                    answere.PadLeft(answere.Length + 1, _table.table[tmp]);
-                    tmp.X--;
-                }
-                if (space != 2)
-                    answere.PadLeft(answere.Length + 1, 'o');
-
-                return answere;
-            }
-            string GetVericalTemplate(Point move)
-            {
-
-                Point tmp = new Point(move.X, move.Y + 1);
-                string answere = "x";
-                int space = 0;
-                while (_table.table[tmp] != 'o')
-                {
-                    if (!_table.table.ContainsKey(tmp))
-                    {
-                        space++;
-                        if (space == 2)
-                            break;
-                        answere += " ";
-                        tmp.Y++;
-                        continue;
-                    }
-
-                    answere += _table.table[tmp];
-                    tmp.Y++;
-                }
-                if (space != 2)
-                    answere += "o";
-                space = 0;
-                tmp.Y = move.Y - 1;
-                while (_table.table[tmp] != 'o')
-                {
-                    if (!_table.table.ContainsKey(tmp))
-                    {
-                        space++;
-                        if (space == 2)
-                            break;
-                        answere += " ";
-                        tmp.Y--;
-                        continue;
-                    }
-
-                    answere.PadLeft(answere.Length + 1, _table.table[tmp]);
-                    tmp.Y--;
-                }
-                if (space != 2)
-                    answere.PadLeft(answere.Length + 1, 'o');
-
-                return answere;
-            }
-            string GetDiagonalTemplate(Point move)
-            {
-
-                Point tmp = new Point(move.X + 1, move.Y + 1);
-                string answere = "x";
-                int space = 0;
-                while (_table.table[tmp] != 'o')
-                {
-                    if (!_table.table.ContainsKey(tmp))
-                    {
-                        space++;
-                        if (space == 2)
-                            break;
-                        answere += " ";
-                        tmp.X++;
-                        tmp.Y++;
-                        continue;
-                    }
-
-                    answere += _table.table[tmp];
-                    tmp.X++;
-                    tmp.Y++;
-                }
-                if (space != 2)
-                    answere += "o";
-                space = 0;
-                tmp.X = move.X - 1;
-                tmp.Y = move.Y - 1;
-                while (_table.table[tmp] != 'o')
-                {
-                    if (!_table.table.ContainsKey(tmp))
-                    {
-                        space++;
-                        if (space == 2)
-                            break;
-                        answere += " ";
-                        tmp.X--;
-                        tmp.Y--;
-                        continue;
-                    }
-
-                    answere.PadLeft(answere.Length + 1, _table.table[tmp]);
-                    tmp.X--;
-                    tmp.Y--;
-                }
-                if (space != 2)
-                    answere.PadLeft(answere.Length + 1, 'o');
-
-                return answere;
-            }
-            string GetMainDiagonalTemplate(Point move)
-            {
-
-                Point tmp = new Point(move.X - 1, move.Y + 1);
-                string answere = "x";
-                int space = 0;
-                while (_table.table[tmp] != 'o')
-                {
-                    if (!_table.table.ContainsKey(tmp))
-                    {
-                        space++;
-                        if (space == 2)
-                            break;
-                        answere += " ";
-                        tmp.X--;
-                        tmp.Y++;
-                        continue;
-                    }
-
-                    answere += _table.table[tmp];
-                    tmp.X--;
-                    tmp.Y++;
-                }
-                if (space != 2)
-                    answere += "o";
-                space = 0;
-                tmp.X = move.X + 1;
-                tmp.Y = move.Y - 1;
-                while (_table.table[tmp] != 'o')
-                {
-                    if (!_table.table.ContainsKey(tmp))
-                    {
-                        space++;
-                        if (space == 2)
-                            break;
-                        answere += " ";
-                        tmp.X++;
-                        tmp.Y--;
-                        continue;
-                    }
-
-                    answere.PadLeft(answere.Length + 1, _table.table[tmp]);
-                    tmp.X++;
-                    tmp.Y--;
-                }
-                if (space != 2)
-                    answere.PadLeft(answere.Length + 1, 'o');
-
-                return answere;
-            }
-            foreach (var move in _possibleMoves)
-            {
-                string HorizontalMask = GetHorizontalTemplate(move);
-                string VerticalMask   = GetVericalTemplate(move);
-                string MainDiagMask   = GetMainDiagonalTemplate(move);
-                string DiagMask       = GetDiagonalTemplate(move);
-
-                int Horizontal = HorizontalRaiting(HorizontalMask);
-                int Vertical   = VerticalRaiting(VerticalMask);
-                int MainDiag   = MainDiagRaiting(MainDiagMask);
-                int Diag       = DiagRaiting(DiagMask);
-
 
             }
         }
 
-        
-
-        private void GetPossibleMoves(Player player)
+        private void PossibleMoves(Player player)
         {
-            List<Point> Coord = new List<Point>();
+            _possibleMoves.Clear();
+            List<Point> Coord;
             switch (player)
             {
                 case Player.AI:
-                    {
-                        Coord = _table.CoordAI;
-                        break;
-                    }
+                    Coord = _board._coord_AI;
+                    break;
                 case Player.User:
-                    {
-                        Coord = _table.CoordUser;
-                        break;
-                    }
-                default:
-                    {
-                        Coord.Clear();
-                        break;
-                    }
+                    Coord = _board._coord_User;
+                    break;
+                default: Coord = null; break;
             }
-            foreach(var p in Coord)
-            {  
-                if (!_table.table.ContainsKey(new Point(p.X + 1, p.Y + 1)))
+            foreach (var p in Coord)
+            {
+                if (!_board._game_board.ContainsKey(new Point(p.X + 1, p.Y + 1)))
                 {
                     _possibleMoves.Add(new Point(p.X + 1, p.Y + 1));
                 }
-                if (!_table.table.ContainsKey(new Point(p.X + 1, p.Y)))
+                if (!_board._game_board.ContainsKey(new Point(p.X + 1, p.Y)))
                 {
                     _possibleMoves.Add(new Point(p.X + 1, p.Y));
                 }
-                if (!_table.table.ContainsKey(new Point(p.X + 1, p.Y - 1)))
+                if (!_board._game_board.ContainsKey(new Point(p.X + 1, p.Y - 1)))
                 {
                     _possibleMoves.Add(new Point(p.X + 1, p.Y - 1));
                 }
-                if (!_table.table.ContainsKey(new Point(p.X, p.Y -1)))
+                if (!_board._game_board.ContainsKey(new Point(p.X, p.Y - 1)))
                 {
-                    _possibleMoves.Add(new Point(p.X , p.Y - 1));
+                    _possibleMoves.Add(new Point(p.X, p.Y - 1));
                 }
-                if (!_table.table.ContainsKey(new Point(p.X - 1, p.Y - 1)))
+                if (!_board._game_board.ContainsKey(new Point(p.X - 1, p.Y - 1)))
                 {
                     _possibleMoves.Add(new Point(p.X - 1, p.Y - 1));
                 }
-                if (!_table.table.ContainsKey(new Point(p.X - 1 , p.Y)))
+                if (!_board._game_board.ContainsKey(new Point(p.X - 1, p.Y)))
                 {
                     _possibleMoves.Add(new Point(p.X - 1, p.Y));
                 }
-                if (!_table.table.ContainsKey(new Point(p.X - 1, p.Y + 1)))
+                if (!_board._game_board.ContainsKey(new Point(p.X - 1, p.Y + 1)))
                 {
-                    _possibleMoves.Add(new Point(p.X - 1, p.Y+1));
+                    _possibleMoves.Add(new Point(p.X - 1, p.Y + 1));
                 }
-                if (!_table.table.ContainsKey(new Point(p.X, p.Y + 1)))
+                if (!_board._game_board.ContainsKey(new Point(p.X, p.Y + 1)))
                 {
                     _possibleMoves.Add(new Point(p.X, p.Y + 1));
                 }
             }
-
             _possibleMoves = _possibleMoves.Distinct().ToList();
-
         }
-
-
-
-
-        public Analyzer(Table table)
+        private void Analyz()
         {
-            _table = table;
+            int max_score = -238590234;
+            int deep = 3;
+            int score = 0;
+            foreach(var move in _possibleMoves)
+            {
+                score = MiniMax(move,deep,Player.User);
+                if (score > max_score)
+                {
+                    max_score = score;
+                    _best_Move = move;
+                }
+                    
+            }
+        }
+        private int MiniMax(Point move,int deep,Player player)
+        {
+            if (deep == 0)
+                return Mark(move);
+            int max = 0;
+            int min = 0;
+            int totalMax = -3242432;
+            int totalMin = 23412314;
+            List<Point> p_m = get_Possible(move);
+            if (player == Player.AI)
+            {
+                foreach (var tmp in p_m)
+                {
+                    max = MiniMax(tmp, deep - 1,Player.User);
+                    if (max > totalMax)
+                        totalMax = max;
+                }
+                return totalMax;
+            }
+            else 
+            {
+                foreach (var tmp in p_m)
+                {
+                    min = MiniMax(tmp, deep - 1, Player.AI);
+                    if (min < totalMin)
+                        totalMin = min;
+                }
+                return totalMax;
+            }
         }
     }
 }

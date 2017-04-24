@@ -1,6 +1,0 @@
-C:\Users\Gjrv\Source\Repos\Gomoku-AI\Gomoku\bin\Debug\Gomoky.exe.config
-C:\Users\Gjrv\Source\Repos\Gomoku-AI\Gomoku\bin\Debug\Gomoky.exe
-C:\Users\Gjrv\Source\Repos\Gomoku-AI\Gomoku\bin\Debug\Gomoky.pdb
-C:\Users\Gjrv\Source\Repos\Gomoku-AI\Gomoku\obj\Debug\Gomoky.exe
-C:\Users\Gjrv\Source\Repos\Gomoku-AI\Gomoku\obj\Debug\Gomoky.pdb
-C:\Users\Gjrv\Source\Repos\Gomoku-AI\Gomoku\obj\Debug\Gomoku.csprojResolveAssemblyReference.cache
